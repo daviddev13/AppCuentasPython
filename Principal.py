@@ -10,12 +10,15 @@ class VistaPrincipal:
         
         self.datos = {
             "Numero de Mes": "", "Efectivo actual": "", "Obs Efect": "",
-            "Cuenta de ahorro 1 actual": "", "Cuenta de ahorro 2 actual": "", 
-            "Cuenta de ahorro 3 actual": "", "Consignaciones Mes CA1": "", 
-            "Consignaciones Mes CA2": "", "Consignaciones Mes CA3": "",
+            "Banco Cuenta de ahorro 1": "", "Banco Cuenta de ahorro 2": "", "Banco Cuenta de ahorro 3": "","Banco Cuenta de ahorro 4": "",
+            "Cuenta de ahorro 1 actual": "", "Cuenta de ahorro 2 actual": "", "Cuenta de ahorro 3 actual": "", "Cuenta de ahorro 4 actual": "",
+            "Consignaciones Mes CA1": "", "Consignaciones Mes CA2": "", "Consignaciones Mes CA3": "", "Consignaciones Mes CA4": "",
             "Obs Cuentas de ahorro": "", "Acumulado Consignaciones": "", 
             "Otra moneda": "", "Obs OMon": "", "Apertura inversiones en el mes": "",
-            "Inversion 1?": "", "Obs Inv1": "", "Inversion 2?": "", "Obs Inv 2": "",
+            "Inversion 1?": "", "Entidad 1?": "", "Obs Inv1": "", 
+            "Inversion 2?": "", "Entidad 2?": "", "Obs Inv2": "",
+            "Inversion 3?": "", "Entidad 3?": "", "Obs Inv3": "", 
+            "Inversion 4?": "", "Entidad 4?": "", "Obs Inv4": "",
             "Acumulado Inversiones": "", 
             "Compras?": "", "Obs Compras": "", "Gastos?": "", "Obs Gastos": "",
             "Deudas?": "", "Obs Deudas": "", "Entidades manejadas en mes?": "",
@@ -44,39 +47,57 @@ class VistaPrincipal:
         row += 1
         
         # Paquete de Efectivo
-        tk.Label(self.root, text="Efectivo").grid(row=row, column=0, columnspan=2)
+        tk.Label(self.root, text="EFECTIVO").grid(row=row, column=0, columnspan=3)
         row += 1
         self.create_entries_pair(row, "Efectivo actual", "Obs Efect")
         row += 1
         
         # Paquete de Cuentas de Ahorro
-        tk.Label(self.root, text="Cuentas de Ahorro").grid(row=row, column=0, columnspan=3)
+        tk.Label(self.root, text="CUENTAS").grid(row=row, column=0, columnspan=4)
         row += 1
-        self.create_entries_triple(row, "Cuenta de ahorro 1 actual", "Cuenta de ahorro 2 actual", "Cuenta de ahorro 3 actual")
+        self.create_entries_pair(row, "Banco Cuenta de ahorro 1", "Banco Cuenta de ahorro 2", "#e0f7fa")
         row += 1
-        self.create_entries_triple(row, "Consignaciones Mes CA1", "Consignaciones Mes CA2", "Consignaciones Mes CA3")
+        self.create_entries_pair(row, "Cuenta de ahorro 1 actual", "Cuenta de ahorro 2 actual", "#e0f7fa")
         row += 1
-        self.create_entry(row, "Obs Cuentas de ahorro")
+        self.create_entries_pair(row, "Consignaciones Mes CA1", "Consignaciones Mes CA2", "#e0f7fa")
+
+        row += 1
+        self.create_entries_pair(row, "Banco Cuenta de ahorro 3", "Banco Cuenta de ahorro 4", "#f1f8e9")
+        row += 1
+        self.create_entries_pair(row, "Cuenta de ahorro 3 actual", "Cuenta de ahorro 4 actual", "#f1f8e9")
+        row += 1
+        self.create_entries_pair(row, "Consignaciones Mes CA3", "Consignaciones Mes CA4", "#f1f8e9")
+
+        row += 1
+        self.create_entry(row, "Obs Cuentas de ahorro")  # Puedes también asignarle color si deseas
         row += 1
         self.create_entry(row, "Acumulado Consignaciones")
         row += 1
         
-        # Paquete de Inversiones
-        tk.Label(self.root, text="Inversiones").grid(row=row, column=0, columnspan=2)
+        # Paquete de DIVISIAS
+        tk.Label(self.root, text="OTRAS MONEDAS").grid(row=row, column=0, columnspan=3)
         row += 1
         self.create_entries_pair(row, "Otra moneda", "Obs OMon")
         row += 1
+
+        # Paquete de Inversiones
+        tk.Label(self.root, text="INVERSIONES").grid(row=row, column=0, columnspan=3)
+        row += 1
         self.create_entry(row, "Apertura inversiones en el mes")
         row += 1
-        self.create_entries_pair(row, "Inversion 1?", "Obs Inv1")
+        self.create_entries_triple(row, "Inversion 1?", "Entidad 1?","Obs Inv1")
         row += 1
-        self.create_entries_pair(row, "Inversion 2?", "Obs Inv 2")
+        self.create_entries_triple(row, "Inversion 2?", "Entidad 2?","Obs Inv2")
+        row += 1
+        self.create_entries_triple(row, "Inversion 3?", "Entidad 3?","Obs Inv3")
+        row += 1
+        self.create_entries_triple(row, "Inversion 4?", "Entidad 4?","Obs Inv4")
         row += 1
         self.create_entry(row, "Acumulado Inversiones")
         row += 1
         
         # Paquete de Gastos
-        tk.Label(self.root, text="Gastos").grid(row=row, column=0, columnspan=2)
+        tk.Label(self.root, text="GASTOS").grid(row=row, column=0, columnspan=3)
         row += 1
         self.create_entries_pair(row, "Compras?", "Obs Compras")
         row += 1
@@ -105,16 +126,16 @@ class VistaPrincipal:
         suma_consig_button.grid(row=row, column=0, columnspan=2, pady=10)
         row += 1
     
-    def create_entries_pair(self, row, label1, label2):
-        tk.Label(self.root, text=label1).grid(row=row, column=0, sticky="w")
-        entry1 = tk.Entry(self.root)
-        entry1.insert(0, "0")  # Establecer el valor inicial 0
+    def create_entries_pair(self, row, label1, label2, bg_color="#ffffff"):
+        tk.Label(self.root, text=label1, bg=bg_color).grid(row=row, column=0, sticky="w")
+        entry1 = tk.Entry(self.root, bg=bg_color)
+        entry1.insert(0, "0")
         entry1.grid(row=row, column=1, sticky="we")
         self.entries[label1] = entry1
-        
-        tk.Label(self.root, text=label2).grid(row=row, column=2, sticky="w")
-        entry2 = tk.Entry(self.root)
-        entry2.insert(0, "0")  # Establecer el valor inicial 0
+
+        tk.Label(self.root, text=label2, bg=bg_color).grid(row=row, column=2, sticky="w")
+        entry2 = tk.Entry(self.root, bg=bg_color)
+        entry2.insert(0, "0")
         entry2.grid(row=row, column=3, sticky="we")
         self.entries[label2] = entry2
     
@@ -164,7 +185,8 @@ class VistaPrincipal:
         sumaConsig = calculadora.sumaConsig(
             self.datos['Consignaciones Mes CA1'],
             self.datos['Consignaciones Mes CA2'],
-            self.datos['Consignaciones Mes CA3']
+            self.datos['Consignaciones Mes CA3'],
+            self.datos['Consignaciones Mes CA4']
         )
 
         print(f"Resultado: {sumaConsig}")
@@ -185,8 +207,11 @@ class VistaPrincipal:
                                     self.datos['Cuenta de ahorro 1 actual'], 
                                     self.datos['Cuenta de ahorro 2 actual'], 
                                     self.datos['Cuenta de ahorro 3 actual'], 
+                                    self.datos['Cuenta de ahorro 4 actual'], 
                                     self.datos['Inversion 1?'], 
                                     self.datos['Inversion 2?'], 
+                                    self.datos['Inversion 3?'],
+                                    self.datos['Inversion 4?'],
                                     self.datos['Otra moneda'])
 
         # Convertir el resultado a string (opcional en Python)
@@ -207,22 +232,36 @@ class VistaPrincipal:
         Efectivo: {self.datos['Efectivo actual']}
         ObsEfectivo: {self.datos['Obs Efect']}
         ******************************* 
-        Cuenta de ahorro: {self.datos['Cuenta de ahorro 1 actual']}
-        Cuenta de ahorro2: {self.datos['Cuenta de ahorro 2 actual']} 
-        Cuenta de ahorro3: {self.datos['Cuenta de ahorro 3 actual']} 
+        Banco Cuenta de ahorro1: {self.datos['Banco Cuenta de ahorro 1']}
+        Cuenta de ahorro1: {self.datos['Cuenta de ahorro 1 actual']}
         ConsignacionesXMesC1: {self.datos['Consignaciones Mes CA1']}
+        Banco Cuenta de ahorro2: {self.datos['Banco Cuenta de ahorro 2']}
+        Cuenta de ahorro2: {self.datos['Cuenta de ahorro 2 actual']} 
         ConsignacionesXMesC2: {self.datos['Consignaciones Mes CA2']}
+        Banco Cuenta de ahorro3: {self.datos['Banco Cuenta de ahorro 3']}
+        Cuenta de ahorro3: {self.datos['Cuenta de ahorro 3 actual']} 
         ConsignacionesXMesC3: {self.datos['Consignaciones Mes CA3']}
+        Banco Cuenta de ahorro4: {self.datos['Banco Cuenta de ahorro 4']}
+        Cuenta de ahorro4: {self.datos['Cuenta de ahorro 4 actual']} 
+        ConsignacionesXMesC4: {self.datos['Consignaciones Mes CA4']}
         ObsCuentaAhorro: {self.datos['Obs Cuentas de ahorro']}
         ******************************* 
         Otra Moneda: {self.datos['Otra moneda']}
         ObsOM: {self.datos['Obs OMon']}
         ******************************* 
         AperturaInversiones: {self.datos['Apertura inversiones en el mes']}
-        Inversion: {self.datos['Inversion 1?']}
+        Inversion1: {self.datos['Inversion 1?']}
+        Entidad1: {self.datos['Entidad 1?']}
         ObsInv1: {self.datos['Obs Inv1']}
         Inversion2: {self.datos['Inversion 2?']}
-        ObsInv2: {self.datos['Obs Inv 2']}
+        Entidad2: {self.datos['Entidad 2?']}
+        ObsInv2: {self.datos['Obs Inv2']}
+        Inversion3: {self.datos['Inversion 3?']}
+        Entidad3: {self.datos['Entidad 3?']}
+        ObsInv3: {self.datos['Obs Inv3']}
+        Inversion4: {self.datos['Inversion 4?']}
+        Entidad4: {self.datos['Entidad 4?']}
+        ObsInv4: {self.datos['Obs Inv4']}
         ******************************* 
         Compras: {self.datos['Compras?']}
         ObsCompra: {self.datos['Obs Compras']}
@@ -265,30 +304,49 @@ class VistaPrincipal:
             "Numero de Mes": 1,
             "Efectivo actual": 3, 
             "Obs Efect": 4,
-            "Cuenta de ahorro 1 actual": 6, 
-            "Cuenta de ahorro 2 actual": 7, 
-            "Cuenta de ahorro 3 actual": 8, 
-            "Consignaciones Mes CA1": 9, 
-            "Consignaciones Mes CA2": 10, 
-            "Consignaciones Mes CA3": 11,
-            "Obs Cuentas de ahorro": 12,
-            "Acumulado Consignaciones": 34, 
-            "Otra moneda": 14,
-            "Obs OMon": 15,
-            "Apertura inversiones en el mes": 17,
-            "Inversion 1?": 18,
-            "Obs Inv1": 19,
-            "Inversion 2?": 20,
-            "Obs Inv 2": 21,
-            "Acumulado Inversiones": 35, 
-            "Compras?": 23,
-            "Obs Compras": 24,
-            "Gastos?": 25,
-            "Obs Gastos": 26,
-            "Deudas?": 27,
-            "Obs Deudas": 28,
-            "Entidades manejadas en mes?": 37,
-            "Observaciones Adicionales": 36
+
+            "Banco Cuenta de ahorro 1": 6,
+            "Cuenta de ahorro 1 actual": 7,
+            "Consignaciones Mes CA1": 8, 
+            "Banco Cuenta de ahorro 2": 9,
+            "Cuenta de ahorro 2 actual": 10,
+            "Consignaciones Mes CA2": 11,
+            "Banco Cuenta de ahorro 3": 12,
+            "Cuenta de ahorro 3 actual": 13, 
+            "Consignaciones Mes CA3": 14,
+            "Banco Cuenta de ahorro 4": 15,
+            "Cuenta de ahorro 4 actual": 16, 
+            "Consignaciones Mes CA4": 17,
+            "Obs Cuentas de ahorro": 18,
+
+            "Otra moneda": 20,
+            "Obs OMon": 21,
+
+            "Apertura inversiones en el mes": 23,
+            "Inversion 1?": 24,
+            "Entidad 1?": 25,
+            "Obs Inv1": 26,
+            "Inversion 2?": 27,
+            "Entidad 2?": 28,
+            "Obs Inv2": 29,
+            "Inversion 3?": 30,
+            "Entidad 3?": 31,
+            "Obs Inv3": 32,
+            "Inversion 4?": 33,
+            "Entidad 4?": 34,
+            "Obs Inv4": 35,
+            
+            "Compras?": 37,
+            "Obs Compras": 38,
+            "Gastos?": 39,
+            "Obs Gastos": 40,
+            "Deudas?": 41,
+            "Obs Deudas": 42,
+
+            "Acumulado Consignaciones": 48, 
+            "Acumulado Inversiones": 49, 
+            "Observaciones Adicionales": 50,
+            "Entidades manejadas en mes?": 51
         }
         # Recorres el diccionario y actualizas cada entrada
         for label, posicion in mapa_actualizacion.items():
