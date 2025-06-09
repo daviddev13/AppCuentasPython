@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 
 from comunes.VistaConfirm import VistaConfirm  # Importar la clase desde el módulo
@@ -9,28 +10,33 @@ from comunes.VistaLoad import VistaLoad
 class ApliCuentas(tk.Frame):
     def __init__(self, master):
         super().__init__(master)  # Inicializa el Frame con master
-        tk.Label(self, text="Hola desde App1").pack(pady=20)
+
+        #anuncio en ventana inicial no tiene root
+        #tk.Label(self, text="Hola desde App1").pack(pady=20)
         
         self.datos = {
-            "Numero de Mes": "", "Efectivo actual": "", "Obs Efect": "",
-            "Banco Cuenta de ahorro 1": "", "Banco Cuenta de ahorro 2": "", "Banco Cuenta de ahorro 3": "","Banco Cuenta de ahorro 4": "",
-            "Cuenta de ahorro 1 actual": "", "Cuenta de ahorro 2 actual": "", "Cuenta de ahorro 3 actual": "", "Cuenta de ahorro 4 actual": "",
+            "Mes": "", "Efectivo actual": "", "Obs Efect": "",
+            "Nombre Cuenta de ahorro 1": "", "Nombre Cuenta de ahorro 2": "", "Nombre Cuenta de ahorro 3": "","Nombre Cuenta de ahorro 4": "",
+            "Valor Actual Cuenta1": "", "Valor Actual Cuenta2": "", "Valor Actual Cuenta3": "", "Valor Actual Cuenta4": "",
             "Consignaciones Mes CA1": "", "Consignaciones Mes CA2": "", "Consignaciones Mes CA3": "", "Consignaciones Mes CA4": "",
-            "Consignaciones totales en Mes": "","Obs Cuentas de ahorro": "", "Acumulado Consignaciones": "", 
-            "Otra moneda": "", "Obs OMon": "", "Apertura inversiones en el mes": "",
+            "Suma ConsignacionesXMes": "","Obs Cuentas de ahorro": "", "Acumulado Consignaciones": "", 
+            "Otra moneda": "", "Obs OMon": "", "Apertura inversiones en Mes": "",
             "Inversion 1?": "", "Entidad 1?": "", "Obs Inv1": "", 
             "Inversion 2?": "", "Entidad 2?": "", "Obs Inv2": "",
             "Inversion 3?": "", "Entidad 3?": "", "Obs Inv3": "", 
             "Inversion 4?": "", "Entidad 4?": "", "Obs Inv4": "",
             "Acumulado Inversiones": "", 
             "Compras?": "", "Obs Compras": "", "Gastos?": "", "Obs Gastos": "",
-            "Deudas?": "", "Obs Deudas": "", "Entidades manejadas en mes?": "",
+            "Prestamo1": "", "Prestamo2": "", "Prestamo3": "",
+            "Total Prestamos": "", "Obs Prestamos": "", "Acum Consigna+Inversiones": "",
             "Observaciones Adicionales": ""
         }
         self.root = tk.Tk()
 
-        # Titulo de la app
+        # Titulo ventana
         self.root.title("Cuentas")
+        # tamaño ventana
+        self.root.geometry("900x900")
 
         # Barra de navegación
         menubar = tk.Menu(self.root)
@@ -40,9 +46,9 @@ class ApliCuentas(tk.Frame):
         menubar.add_cascade(label="Archivo", menu=app_menu)
         app_menu.add_command(label="Cargar Archivo", command=self.boton_load_save)
 
-        # Diccionario para guardar los Entries antes de crearlos
+        # Variable para guardar entradas antes de crearlos
         self.entries = {} 
-        self.create_widgets()
+        self.crear_accesos()
 
         # instancia de load con callback
         self.vista_load = VistaLoad(master=self.root, callback=self.recibir_lineas)
@@ -51,96 +57,163 @@ class ApliCuentas(tk.Frame):
         self.url_user = ""
         self.lineas_recibidas = [] # Variable para almacenar las líneas
         
-    def create_widgets(self):
+    def crear_accesos(self):
         row = 1
 
         # Paquete de Mes
-        row += 1
-        self.create_entry(row, "Numero de Mes")
+        row += 2
+        self.crear_entrada_simple(row, "Mes")
         row += 1
         
         # Paquete de Efectivo
         tk.Label(self.root, text="EFECTIVO").grid(row=row, column=0, columnspan=3)
         row += 1
-        self.create_entries_pair(row, "Efectivo actual", "Obs Efect")
+        self.crear_entrada_simple(row, "Efectivo actual")
+        row += 1
+        self.create_entry(row, "Obs Efect") 
         row += 1
         
         # Paquete de Cuentas de Ahorro
         tk.Label(self.root, text="CUENTAS").grid(row=row, column=0, columnspan=4)
         row += 1
-        self.create_entries_pair(row, "Banco Cuenta de ahorro 1", "Banco Cuenta de ahorro 2", "#e0f7fa")
+        self.create_entries_pair(row, "Nombre Cuenta de ahorro 1", "Nombre Cuenta de ahorro 2", "#e0f7fa")
         row += 1
-        self.create_entries_pair(row, "Cuenta de ahorro 1 actual", "Cuenta de ahorro 2 actual", "#e0f7fa")
+        self.create_entries_pair(row, "Valor Actual Cuenta1", "Valor Actual Cuenta2", "#e0f7fa")
         row += 1
         self.create_entries_pair(row, "Consignaciones Mes CA1", "Consignaciones Mes CA2", "#e0f7fa")
 
         row += 1
-        self.create_entries_pair(row, "Banco Cuenta de ahorro 3", "Banco Cuenta de ahorro 4", "#f1f8e9")
+        self.create_entries_pair(row, "Nombre Cuenta de ahorro 3", "Nombre Cuenta de ahorro 4", "#f1f8e9")
         row += 1
-        self.create_entries_pair(row, "Cuenta de ahorro 3 actual", "Cuenta de ahorro 4 actual", "#f1f8e9")
+        self.create_entries_pair(row, "Valor Actual Cuenta3", "Valor Actual Cuenta4", "#f1f8e9")
         row += 1
         self.create_entries_pair(row, "Consignaciones Mes CA3", "Consignaciones Mes CA4", "#f1f8e9")
+        row += 1
 
+        # Paquete de suma de consignaciones
+        self.create_suma_consignaciones_entry(row, "Suma ConsignacionesXMes", "Sumar", 
+        self.boton_calcular_consignacionesxmes)
         row += 1
-        self.create_entry(row, "Consignaciones totales en Mes")  
-        row += 1
+
         self.create_entry(row, "Obs Cuentas de ahorro")  
         row += 1
-        self.create_entry(row, "Acumulado Consignaciones")
+        self.crear_entrada_simple(row, "Acumulado Consignaciones")
         row += 1
         
         # Paquete de DIVISIAS
         tk.Label(self.root, text="OTRAS MONEDAS").grid(row=row, column=0, columnspan=3)
         row += 1
-        self.create_entries_pair(row, "Otra moneda", "Obs OMon")
+        self.crear_entrada_simple(row, "Otra moneda")
+        row += 1
+        self.create_entry(row, "Obs OMon")
         row += 1
 
         # Paquete de Inversiones
         tk.Label(self.root, text="INVERSIONES").grid(row=row, column=0, columnspan=3)
         row += 1
-        self.create_entry(row, "Apertura inversiones en el mes")
+        self.create_entry(row, "Apertura inversiones en Mes")
         row += 1
-        self.create_entries_triple(row, "Inversion 1?", "Entidad 1?","Obs Inv1")
+        self.create_entries_triple(row, "Inversion 1?", "Obs Inv1", "Entidad 1?")
         row += 1
-        self.create_entries_triple(row, "Inversion 2?", "Entidad 2?","Obs Inv2")
+        self.create_entries_triple(row, "Inversion 2?", "Obs Inv2", "Entidad 2?")
         row += 1
-        self.create_entries_triple(row, "Inversion 3?", "Entidad 3?","Obs Inv3")
+        self.create_entries_triple(row, "Inversion 3?", "Obs Inv3", "Entidad 3?")
         row += 1
-        self.create_entries_triple(row, "Inversion 4?", "Entidad 4?","Obs Inv4")
+        self.create_entries_triple(row, "Inversion 4?", "Obs Inv4", "Entidad 4?")
         row += 1
-        self.create_entry(row, "Acumulado Inversiones")
+        self.crear_entrada_simple(row, "Acumulado Inversiones")
         row += 1
-        
+
         # Paquete de Gastos
         tk.Label(self.root, text="GASTOS").grid(row=row, column=0, columnspan=3)
         row += 1
-        self.create_entries_pair(row, "Compras?", "Obs Compras")
+        self.crear_entrada_simple(row, "Compras?")
         row += 1
-        self.create_entries_pair(row, "Gastos?", "Obs Gastos")
+        self.create_entry(row, "Obs Compras")
         row += 1
-        self.create_entries_pair(row, "Deudas?", "Obs Deudas")
+        self.crear_entrada_simple(row, "Gastos?")
+        row += 1
+        self.create_entry(row, "Obs Gastos")
+        row += 1
+        self.create_entries_triple(row, "Prestamo1", "Prestamo2", "Prestamo3")
+        row += 1
+        self.create_suma_prestamos_entry(row, "Total Prestamos", "Sumar", 
+        self.boton_sumar_prestamos)
+        row += 1
+        self.create_entry(row, "Obs Prestamos")
         row += 1
         
-        # Paquete de Entidades y Observaciones
-        self.create_entry(row, "Entidades manejadas en mes?")
+        # Paquete de Observaciones
         row += 1
-        self.create_entry(row, "Observaciones Adicionales")
+        tk.Label(self.root, text="OBSERVACIONES GENERALES").grid(row=row, column=0, columnspan=3)
         row += 1
-        
+        self.crear_entrada_total(row, "Observaciones Adicionales")
+        row += 1
+
+        # Paquete acumulado consignaciones
+        self.create_suma_consignaciones_entry(row, "Acum Consigna+Inversiones", "Calcular", 
+        self.boton_sumar_acumulado)
+        row += 1
+
         confirm_button = tk.Button(self.root, text="Confirmar Datos", command=self.evento_boton_confirmar_datos)
         confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
         row += 1
 
-        suma_consig_button = tk.Button(self.root, text="Suma de Consignaciones", command=self.boton_calcular_consignacionesxmes)
-        suma_consig_button.grid(row=row, column=0, columnspan=2, pady=10)
-        row += 1 
-        
-        # Paquete de suma de consignaciones
-        tk.Label(self.root, text="Suma de Consignaciones:").grid(row=row, column=0, sticky="w")
-        self.label_resultado_suma_consig = tk.Label(self.root, text="0")
-        self.label_resultado_suma_consig.grid(row=row, column=1, sticky="w")
-        row += 1
+    def crear_entrada_combox(self, row, label, tipo="entry", opciones=None):
+        tk.Label(self.root, text=label).grid(row=row, column=0, sticky="w")
+        combo = ttk.Combobox(self.root, values=opciones, state="readonly")
+        combo.current(0)  # Seleccionar primer valor por defecto
+        combo.grid(row=row, column=1, sticky="we")
+        self.entries[label] = combo
+
+    def crear_entrada_total(self, row, label):
+        entry = tk.Entry(self.root)
+        entry.insert(0, "vacio")  # Establecer el valor inicial 0
+        entry.grid(row=row, column=0, columnspan=6, sticky="we")
+        self.entries[label] = entry  # Guardar el Entry en un diccionario
+
+    def crear_entrada_simple(self, row, label):
+        tk.Label(self.root, text=label).grid(row=row, column=0, sticky="w")
+        entry = tk.Entry(self.root)
+        entry.insert(0, "0")  # Establecer el valor inicial 0
+        entry.grid(row=row, column=1, columnspan=1, sticky="we")
+        self.entries[label] = entry  # Guardar el Entry en un diccionario
     
+    def create_entry(self, row, label):
+        tk.Label(self.root, text=label).grid(row=row, column=0, sticky="w")
+        entry = tk.Entry(self.root)
+        entry.insert(0, "vacio")  # Establecer el valor inicial 0
+        entry.grid(row=row, column=1, columnspan=5, sticky="we")
+        self.entries[label] = entry  # Guardar el Entry en un diccionario
+
+    def create_suma_consignaciones_entry(self, row, label_text, button_text, command_callback):
+        # Label
+        tk.Label(self.root, text=label_text).grid(row=row, column=0, sticky="w")
+        
+        # Entry (en vez de Label para mostrar el resultado)
+        entry = tk.Entry(self.root)
+        entry.insert(0, "0")  # Valor inicial
+        entry.grid(row=row, column=1, sticky="we")
+        self.entries[label_text] = entry  # Guardar el entry si necesitas acceder luego
+
+        # Botón
+        button = tk.Button(self.root, text=button_text, command=command_callback)
+        button.grid(row=row, column=2, sticky="we", padx=5)
+    
+    def create_suma_prestamos_entry(self, row, label_text, button_text, command_callback):
+        # Label
+        tk.Label(self.root, text=label_text).grid(row=row, column=0, sticky="w")
+        
+        # Entry (en vez de Label para mostrar el resultado)
+        entry = tk.Entry(self.root)
+        entry.insert(0, "0")  # Valor inicial
+        entry.grid(row=row, column=1, sticky="we")
+        self.entries[label_text] = entry  # Guardar el entry si necesitas acceder luego
+
+        # Botón
+        button = tk.Button(self.root, text=button_text, command=command_callback)
+        button.grid(row=row, column=2, sticky="we", padx=5)
+   
     def create_entries_pair(self, row, label1, label2, bg_color="#ffffff"):
         tk.Label(self.root, text=label1, bg=bg_color).grid(row=row, column=0, sticky="w")
         entry1 = tk.Entry(self.root, bg=bg_color)
@@ -172,19 +245,17 @@ class ApliCuentas(tk.Frame):
         entry3.insert(0, "0")  # Establecer el valor inicial 0
         entry3.grid(row=row, column=5, sticky="we")
         self.entries[label3] = entry3
-    
-    def create_entry(self, row, label):
-        """Crea un Entry y lo guarda en el diccionario"""
-        tk.Label(self.root, text=label).grid(row=row, column=0, sticky="w")
-        entry = tk.Entry(self.root)
-        entry.insert(0, "0")  # Establecer el valor inicial 0
-        entry.grid(row=row, column=1, columnspan=3, sticky="we")
-        self.entries[label] = entry  # Guardar el Entry en un diccionario
 
     def get_datos_window(self):
         for key in self.datos.keys():
-            self.datos[key] = self.entries[key].get() if self.entries[key].get() else "vacio"
-        #print("Datos obtenidos:", self.datos)
+            try:
+                widget = self.entries[key]
+                valor = widget.get() if widget.get() else "vacio"
+                self.datos[key] = valor
+            except Exception as e:
+                print(f"Error con la clave '{key}': {e}")
+        
+        print("Datos obtenidos:", self.datos)
         self.url_user = self.datos
         print("Datos:", self.url_user)
 
@@ -204,10 +275,53 @@ class ApliCuentas(tk.Frame):
             self.datos['Consignaciones Mes CA4']
         )
 
-        print(f"Resultado: {sumaConsig}")
+        print(f"Suma de consignaciones: {sumaConsig}")
 
         # Mostrar el resultado en la ventana
-        self.label_resultado_suma_consig.config(text=f"Suma: {sumaConsig}")
+        self.entries["Suma ConsignacionesXMes"].delete(0, tk.END)
+        self.entries["Suma ConsignacionesXMes"].insert(0, str(sumaConsig))
+
+    def boton_sumar_prestamos(self):
+        print("Clicked Suma de prestamos")
+        self.get_datos_window()
+
+        # Instanciar la clase Calculadora
+        calculadora = Calculadora()
+        #print(self.datos['Consignaciones Mes CA1'])
+
+        # Calcular la suma
+        sumaPrestamos = calculadora.sumaPrestamos(
+            self.datos['Prestamo1'],
+            self.datos['Prestamo2'],
+            self.datos['Prestamo3'],
+        )
+
+        print(f"Suma de prestamo: {sumaPrestamos}")
+
+        # Mostrar el resultado en la ventana
+        self.entries["Total Prestamos"].delete(0, tk.END)
+        self.entries["Total Prestamos"].insert(0, str(sumaPrestamos))
+
+
+    def boton_sumar_acumulado(self):
+        print("Clicked Suma de acumulado")
+        self.get_datos_window()
+
+        # Instanciar la clase Calculadora
+        calculadora = Calculadora()
+        #print(self.datos['Consignaciones Mes CA1'])
+
+        # Calcular acumTotal
+        acumTotal = calculadora.AcumTotal(
+            self.datos['Acumulado Consignaciones'],
+            self.datos['Acumulado Inversiones']
+        )
+
+        print(f"Acumulado total: {acumTotal}")
+
+        # Mostrar el resultado en la ventana
+        self.entries["Acum Consigna+Inversiones"].delete(0, tk.END)
+        self.entries["Acum Consigna+Inversiones"].insert(0, str(acumTotal))
 
     def evento_boton_confirmar_datos(self):
         print("Clicked Confirmar Datos")
@@ -219,10 +333,10 @@ class ApliCuentas(tk.Frame):
          
         # Llamar al método activos
         activos = calculadora.activos(self.datos['Efectivo actual'], 
-                                    self.datos['Cuenta de ahorro 1 actual'], 
-                                    self.datos['Cuenta de ahorro 2 actual'], 
-                                    self.datos['Cuenta de ahorro 3 actual'], 
-                                    self.datos['Cuenta de ahorro 4 actual'], 
+                                    self.datos['Valor Actual Cuenta1'], 
+                                    self.datos['Valor Actual Cuenta2'], 
+                                    self.datos['Valor Actual Cuenta3'], 
+                                    self.datos['Valor Actual Cuenta4'], 
                                     self.datos['Inversion 1?'], 
                                     self.datos['Inversion 2?'], 
                                     self.datos['Inversion 3?'],
@@ -233,7 +347,7 @@ class ApliCuentas(tk.Frame):
         str_total_ac = str(activos)
 
         # Llamar al método patrimonio
-        patrimonio = calculadora.patrimonio(str_total_ac, self.datos['Deudas?'])
+        patrimonio = calculadora.patrimonio(str_total_ac, self.datos['Total Prestamos'])
 
         # Mostrar el resultado (equivalente a System.out.println)
         print(f"Resultado: {activos}")
@@ -242,30 +356,30 @@ class ApliCuentas(tk.Frame):
 
         # # Preparar los datos
         Datos = f"""
-        Mes: {self.datos['Numero de Mes']} 
+        Mes: {self.datos['Mes']} 
         ******************************* 
         Efectivo: {self.datos['Efectivo actual']}
         ObsEfectivo: {self.datos['Obs Efect']}
         ******************************* 
-        Banco Cuenta de ahorro1: {self.datos['Banco Cuenta de ahorro 1']}
-        Cuenta de ahorro1: {self.datos['Cuenta de ahorro 1 actual']}
+        Nombre Cuenta de ahorro1: {self.datos['Nombre Cuenta de ahorro 1']}
+        Valor Actual Cuenta1: {self.datos['Valor Actual Cuenta1']}
         ConsignacionesXMesC1: {self.datos['Consignaciones Mes CA1']}
-        Banco Cuenta de ahorro2: {self.datos['Banco Cuenta de ahorro 2']}
-        Cuenta de ahorro2: {self.datos['Cuenta de ahorro 2 actual']} 
+        Nombre Cuenta de ahorro2: {self.datos['Nombre Cuenta de ahorro 2']}
+        Valor Actual Cuenta2: {self.datos['Valor Actual Cuenta2']} 
         ConsignacionesXMesC2: {self.datos['Consignaciones Mes CA2']}
-        Banco Cuenta de ahorro3: {self.datos['Banco Cuenta de ahorro 3']}
-        Cuenta de ahorro3: {self.datos['Cuenta de ahorro 3 actual']} 
+        Nombre Cuenta de ahorro3: {self.datos['Nombre Cuenta de ahorro 3']}
+        Valor Actual Cuenta3: {self.datos['Valor Actual Cuenta3']} 
         ConsignacionesXMesC3: {self.datos['Consignaciones Mes CA3']}
-        Banco Cuenta de ahorro4: {self.datos['Banco Cuenta de ahorro 4']}
-        Cuenta de ahorro4: {self.datos['Cuenta de ahorro 4 actual']} 
+        Nombre Cuenta de ahorro4: {self.datos['Nombre Cuenta de ahorro 4']}
+        Valor Actual Cuenta4: {self.datos['Valor Actual Cuenta4']} 
         ConsignacionesXMesC4: {self.datos['Consignaciones Mes CA4']}
-        Consignaciones totales en Mes: {self.datos['Consignaciones totales en Mes']}
+        Suma ConsignacionesXMes: {self.datos['Suma ConsignacionesXMes']}
         ObsCuentaAhorro: {self.datos['Obs Cuentas de ahorro']}
         ******************************* 
         Otra Moneda: {self.datos['Otra moneda']}
         ObsOM: {self.datos['Obs OMon']}
         ******************************* 
-        AperturaInversiones: {self.datos['Apertura inversiones en el mes']}
+        AperturaInversiones: {self.datos['Apertura inversiones en Mes']}
         Inversion1: {self.datos['Inversion 1?']}
         Entidad1: {self.datos['Entidad 1?']}
         ObsInv1: {self.datos['Obs Inv1']}
@@ -283,22 +397,27 @@ class ApliCuentas(tk.Frame):
         ObsCompra: {self.datos['Obs Compras']}
         Gastos: {self.datos['Gastos?']}
         ObsGastos: {self.datos['Obs Gastos']}
-        Deudas: {self.datos['Deudas?']} 
-        ObsDeudas: {self.datos['Obs Deudas']}
+        Prestamo1: {self.datos['Prestamo1']}
+        Prestamo2: {self.datos['Prestamo2']}
+        Prestamo3: {self.datos['Prestamo3']}
+        Total Prestamos: {self.datos['Total Prestamos']} 
+        Obs Prestamos: {self.datos['Obs Prestamos']}
         ******************************* 
         Activos: {activos}
-        Pasivos: {self.datos['Deudas?']}
+        Pasivos: {self.datos['Total Prestamos']}
         Patrimonio: {patrimonio}
         ******************************* 
         AcumConsignaciones: {self.datos['Acumulado Consignaciones']}
         AcumInversiones: {self.datos['Acumulado Inversiones']}
         Observaciones: {self.datos['Observaciones Adicionales']}
-        Entidades: {self.datos['Entidades manejadas en mes?']}
+        Acum Consigna+Inversiones: {self.datos['Acum Consigna+Inversiones']}
         """
         # clic “Confirmar” crea nueva ventana totalmente nueva sin instancia.
         ventana = VistaConfirm(self.root)
         ventana.set_label2_text(Datos)
         ventana.mostrar()
+            # tamaño ventana
+        self.root.geometry("900x900")
 
     def boton_load_save(self):
         print("Load Save clicked!")
@@ -317,29 +436,29 @@ class ApliCuentas(tk.Frame):
         self.lineas_recibidas = lineas
         # Diccionario: clave = label del Entry, valor = índice en self.lineas_recibidas
         mapa_actualizacion = {
-            "Numero de Mes": 1,
+            "Mes": 1,
             "Efectivo actual": 3, 
             "Obs Efect": 4,
 
-            "Banco Cuenta de ahorro 1": 6,
-            "Cuenta de ahorro 1 actual": 7,
+            "Nombre Cuenta de ahorro 1": 6,
+            "Valor Actual Cuenta1": 7,
             "Consignaciones Mes CA1": 8, 
-            "Banco Cuenta de ahorro 2": 9,
-            "Cuenta de ahorro 2 actual": 10,
+            "Nombre Cuenta de ahorro 2": 9,
+            "Valor Actual Cuenta2": 10,
             "Consignaciones Mes CA2": 11,
-            "Banco Cuenta de ahorro 3": 12,
-            "Cuenta de ahorro 3 actual": 13, 
+            "Nombre Cuenta de ahorro 3": 12,
+            "Valor Actual Cuenta3": 13, 
             "Consignaciones Mes CA3": 14,
-            "Banco Cuenta de ahorro 4": 15,
-            "Cuenta de ahorro 4 actual": 16, 
+            "Nombre Cuenta de ahorro 4": 15,
+            "Valor Actual Cuenta4": 16, 
             "Consignaciones Mes CA4": 17,
-            "Consignaciones totales en Mes": 18,
+            "Suma ConsignacionesXMes": 18,
             "Obs Cuentas de ahorro": 19,
 
             "Otra moneda": 21,
             "Obs OMon": 22,
 
-            "Apertura inversiones en el mes": 24,
+            "Apertura inversiones en Mes": 24,
             "Inversion 1?": 25,
             "Entidad 1?": 26,
             "Obs Inv1": 27,
@@ -357,13 +476,16 @@ class ApliCuentas(tk.Frame):
             "Obs Compras": 39,
             "Gastos?": 40,
             "Obs Gastos": 41,
-            "Deudas?": 42,
-            "Obs Deudas": 43,
+            "Prestamo1": 42,
+            "Prestamo2": 43,
+            "Prestamo3": 44,
+            "Total Prestamos": 45,
+            "Obs Prestamos": 46,
 
-            "Acumulado Consignaciones": 49, 
-            "Acumulado Inversiones": 50, 
-            "Observaciones Adicionales": 51,
-            "Entidades manejadas en mes?": 52
+            "Acumulado Consignaciones": 52, 
+            "Acumulado Inversiones": 53, 
+            "Observaciones Adicionales": 54,
+            "Acum Consigna+Inversiones": 55
         }
         # Recorres el diccionario y actualizas cada entrada
         for label, posicion in mapa_actualizacion.items():
@@ -404,25 +526,3 @@ class ApliCuentas(tk.Frame):
 if __name__ == "__main__":
     app = VistaPrincipal()
     app.run()
-
-
-# messagebox.showinfo("Confirmación", "Datos confirmados correctamente")
-
-        # Si tienes otro método como AcumuladoConsig
-        #acum = calculadora.acumulado_consig(ConsigxMes, ConsigC2xMes)
-
-        # Y si también tienes AcumuladoInver
-        # acum2 = calculadora.acumulado_inver(ApertInv)
-            #print(f"Acumulado Consignaciones: {acum}")
-
-#metodo ventana con instancias
- # Crear una instancia de VistaConfirm (asumiendo que ya tienes esta clase)
-        #self.vista_confirm = VistaConfirm() 
-# Comprobar si la ventana fue cerrada o no existe
-        #if self.vista_confirm is None or not self.vista_confirm.winfo_exists():
-         #   from VistaConfirm import VistaConfirm  # o importa al inicio
-          #  self.vista_confirm = VistaConfirm(self.root)  # reemplaza 'self.root' por tu ventana principal si tiene otro nombre
-        # Lleva datos a vista confirm 
-        #self.vista_confirm.set_label2_text(Datos)  
-        # Hace visible ventana confirmacion
-        #self.vista_confirm.mostrar()

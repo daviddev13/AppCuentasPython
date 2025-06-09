@@ -22,14 +22,26 @@ class Calculadora:
         
         return total_ac
     
-    def patrimonio(self, textActivos, textDeudas):
-        num_activos = int(textActivos)
-        num_deudas = int(textDeudas)
-        patrimonio = num_activos - num_deudas
-        return patrimonio
+    def patrimonio(self, Activos, Deudas):
+        try:
+            return float(Activos) - float(Deudas)
+        except ValueError:
+            return "Error en los datos"
 
     def sumaConsig(self, ca1, ca2, ca3, ca4):
         try:
             return float(ca1) + float(ca2) + float(ca3) + float(ca4)
+        except ValueError:
+            return "Error en los datos"
+
+    def AcumTotal(self, AcumConsignaciones, AcumInversiones):
+        try:
+            return float(AcumConsignaciones) + float(AcumInversiones)
+        except ValueError:
+            return "Error en los datos"
+
+    def sumaPrestamos(self, prestamo1, prestamo2, prestamo3):
+        try:
+            return float(prestamo1) + float(prestamo2) + float(prestamo3)
         except ValueError:
             return "Error en los datos"

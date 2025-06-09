@@ -9,7 +9,7 @@ class VistaConfirm(tk.Toplevel):
         super().__init__(master) 
         print("Clase VistaConfirm creada")
         self.title("Confirmar Datos")
-        self.geometry("300x240")
+        self.geometry("400x900")
         
         # Ocultar la ventana secundaria hasta que sea necesario
         self.withdraw()
