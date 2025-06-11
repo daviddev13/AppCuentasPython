@@ -18,5 +18,7 @@ También se puede guardar el resumen en un archivo .txt
 Al descargar la app en el pc y tener instalado python en cualquier sistema Operativo, 
 se puede iniciar corriendo el archivo principal (main)
 
+https://www.youtube.com/watch?v=Vty6ne4-6jo
 
+https://www.youtube.com/watch?v=2zlbIdQTAB8
 
