@@ -50,11 +50,11 @@ class ApliCuentas(ttk.Frame):
                 self.top.title("Cuentas")
                 # Si creamos el root, damos tamaño por defecto; si el usuario pasó un Toplevel/Tk se respeta o se reajusta
                 if self._owns_root:
-                    self.top.geometry("1300x500")
+                    self.top.geometry("1600x1200")
                 else:
                     # si el top proviene de caller, no forzamos un tamaño grande, solo un mínimo
                     try:
-                        self.top.minsize(1025, 600)
+                        self.top.minsize(2000, 900)
                     except Exception:
                         pass
         except Exception:
@@ -78,15 +78,16 @@ class ApliCuentas(ttk.Frame):
             "Nombre Cuenta de ahorro 1": "", "Nombre Cuenta de ahorro 2": "", "Nombre Cuenta de ahorro 3": "","Nombre Cuenta de ahorro 4": "",
             "Valor Actual Cuenta1": "", "Valor Actual Cuenta2": "", "Valor Actual Cuenta3": "", "Valor Actual Cuenta4": "",
             "Consignaciones Mes CA1": "", "Consignaciones Mes CA2": "", "Consignaciones Mes CA3": "", "Consignaciones Mes CA4": "",
-            "Suma ConsignacionesXMes": "","Obs Cuentas de ahorro": "", "Acumulado Consignaciones": "", 
-            "Otra moneda": "", "Obs OMon": "", "Apertura inversiones en Mes": "",
+            "Suma ConsignacionesXMes": "","Obs Cuentas de ahorro": "",
+            "Acumulado Consignaciones Anterior": "", "Nuevo Acumulado Consignaciones": "", 
+            "Otra moneda": "", "Obs OMon": "", 
             "Inversion 1?": "", "Entidad 1?": "", "Obs Inv1": "", 
             "Inversion 2?": "", "Entidad 2?": "", "Obs Inv2": "",
             "Inversion 3?": "", "Entidad 3?": "", "Obs Inv3": "", 
             "Inversion 4?": "", "Entidad 4?": "", "Obs Inv4": "",
             "Inversion 5?": "", "Entidad 5?": "", "Obs Inv5": "",
             "Inversion 6?": "", "Entidad 6?": "", "Obs Inv6": "",
-            "Acumulado Inversiones": "", 
+            "Apertura inversiones en Mes": "","Acumulado Inversiones Anterior": "", "Nuevo Acumulado Inversiones": "", "Obs Inversiones":"",
             "Compras?": "", "Obs Compras": "", "Gastos?": "", "Obs Gastos": "",
             "Prestamo1": "", "Prestamo2": "", "Prestamo3": "", "Prestamo4": "",
             "nameP1":"", "nameP2":"","nameP3":"","nameP4":"",
@@ -103,11 +104,24 @@ class ApliCuentas(ttk.Frame):
         self.canvas = tk.Canvas(contenedor)
         self.canvas.pack(side="left", fill="both", expand=True)
 
-        # Scrollbar vertical
-        scrollbar = tk.Scrollbar(contenedor, orient="vertical", command=self.canvas.yview)
+       # Scrollbar vertical
+        scrollbar = ttk.Scrollbar(contenedor, orient="vertical", command=self.canvas.yview)
         scrollbar.pack(side="right", fill="y")
-
-        self.canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Crear y configurar estilo para scrollbar más grueso
+        style = ttk.Style()
+        
+        # Configurar estilo personalizado
+        style.configure("Custom.Vertical.TScrollbar",
+                arrowsize=20,
+                width=35,
+                background="#6C8EBF",  # Color del deslizador
+                troughcolor="#F5F5F5",  # Color del canal
+                borderwidth=0,
+                relief="flat")
+        
+        # Aplicar el estilo
+        scrollbar.configure(style="Custom.Vertical.TScrollbar")
 
         # Frame interior donde pondrás los widgets (este es el que se desplaza)
         self.interior = tk.Frame(self.canvas)
@@ -143,9 +157,7 @@ class ApliCuentas(ttk.Frame):
         self.url_user = ""
         self.lineas_recibidas = []  # Variable para almacenar las líneas
 
-    # -------------------------------------------------------
     # Manejo de la rueda del ratón (soporte multiplataforma)
-    # -------------------------------------------------------
     def _bind_mousewheel(self):
         # Vincular cuando el cursor entra al canvas para que la rueda funcione
         self.canvas.bind("<Enter>", lambda e: self.canvas.focus_set())
@@ -168,9 +180,7 @@ class ApliCuentas(ttk.Frame):
         elif event.num == 5:
             self.canvas.yview_scroll(1, "units")
 
-    # ---------------------------
     # CREACIÓN DEL FORMULARIO
-    # ---------------------------
     def crear_accesos(self):
         row = 1
 
@@ -210,7 +220,9 @@ class ApliCuentas(ttk.Frame):
 
         self.create_entry(row, "Obs Cuentas de ahorro")  
         row += 1
-        self.crear_entrada_simple(row, "Acumulado Consignaciones")
+        self.crear_entrada_simple(row, "Acumulado Consignaciones Anterior")
+        row += 1
+        self.create_suma_consignaciones_entry(row, "Nuevo Acumulado Consignaciones", "Calcular", self.boton_calcular_Acumconsignaciones)
         row += 1
         
         # Paquete de DIVISIAS
@@ -224,8 +236,6 @@ class ApliCuentas(ttk.Frame):
         # Paquete de Inversiones
         tk.Label(self.interior, text="INVERSIONES", bg="lightblue").grid(row=row, column=0, columnspan=10, sticky="we", pady=(8,2))
         row += 1
-        self.create_entry(row, "Apertura inversiones en Mes")
-        row += 1
         self.create_entries_triple(row, "Inversion 1?", "Obs Inv1", "Entidad 1?")
         row += 1
         self.create_entries_triple(row, "Inversion 2?", "Obs Inv2", "Entidad 2?")
@@ -238,7 +248,13 @@ class ApliCuentas(ttk.Frame):
         row += 1
         self.create_entries_triple(row, "Inversion 6?", "Obs Inv6", "Entidad 6?")
         row += 1
-        self.crear_entrada_simple(row, "Acumulado Inversiones")
+        self.create_entry(row, "Obs Inversiones")
+        row += 1
+        self.crear_entrada_simple(row, "Apertura inversiones en Mes")
+        row += 1
+        self.crear_entrada_simple(row, "Acumulado Inversiones Anterior")
+        row += 1
+        self.create_suma_consignaciones_entry(row, "Nuevo Acumulado Inversiones", "Calcular", self.boton_calcular_Acuminverisones)
         row += 1
 
         # Paquete de Gastos
@@ -284,9 +300,7 @@ class ApliCuentas(ttk.Frame):
         #for c in range(6):
          #   self.interior.grid_columnconfigure(c, weight=1)
 
-    # ---------------------------
     # FUNCIONES AUXILIARES
-    # ---------------------------
     def crear_entrada_simple(self, row, label):
         tk.Label(self.interior, text=label).grid(row=row, column=0, sticky="w", padx=4, pady=2)
         entry = tk.Entry(self.interior)
@@ -405,6 +419,50 @@ class ApliCuentas(ttk.Frame):
             self.entries["Suma ConsignacionesXMes"].delete(0, tk.END)
             self.entries["Suma ConsignacionesXMes"].insert(0, str(sumaConsig))
 
+    def boton_calcular_Acumconsignaciones(self):
+        print("Clicked calculo de acumulado consignacionesXaño")
+        self.get_datos_window()
+        try:
+           anterior = float(self.datos.get("Acumulado Consignaciones Anterior", 0) or 0)
+           x_mes = float(self.datos.get("Suma ConsignacionesXMes", 0) or 0)
+
+           nuevo = anterior + x_mes
+
+           print(f"AcumConsignacionesNew: {nuevo}")
+
+           # Guardar en el diccionario
+           self.datos["Nuevo Acumulado Consignaciones"] = str(nuevo)
+
+           # Mostrar el resultado en la ventana
+           if "Nuevo Acumulado Consignaciones" in self.entries:
+              self.entries["Nuevo Acumulado Consignaciones"].delete(0, tk.END)
+              self.entries["Nuevo Acumulado Consignaciones"].insert(0, str(nuevo))
+
+        except ValueError:
+           print("Error: uno de los valores no es numérico.")
+
+    def boton_calcular_Acuminverisones(self):
+        print("Clicked calculo de acumulado incersionesXaño")
+        self.get_datos_window()
+        try:
+           anterior = float(self.datos.get("Acumulado Inversiones Anterior", 0) or 0)
+           x_mes = float(self.datos.get("Apertura inversiones en Mes", 0) or 0)
+
+           nuevo = anterior + x_mes
+
+           print(f"AcumInverionesNew: {nuevo}")
+
+           # Guardar en el diccionario
+           self.datos["Nuevo Acumulado Inversiones"] = str(nuevo)
+
+           # Mostrar el resultado en la ventana
+           if "Nuevo Acumulado Consignaciones" in self.entries:
+              self.entries["Nuevo Acumulado Inversiones"].delete(0, tk.END)
+              self.entries["Nuevo Acumulado Inversiones"].insert(0, str(nuevo))
+
+        except ValueError:
+           print("Error: uno de los valores no es numérico.")
+
     def boton_sumar_prestamos(self):
         print("Clicked Suma de prestamos")
         self.get_datos_window()
@@ -424,7 +482,6 @@ class ApliCuentas(ttk.Frame):
             self.entries["Total Prestamos"].delete(0, tk.END)
             self.entries["Total Prestamos"].insert(0, str(sumaPrestamos))
 
-
     def boton_sumar_acumulado(self):
         print("Clicked Suma de acumulado")
         self.get_datos_window()
@@ -432,8 +489,8 @@ class ApliCuentas(ttk.Frame):
         calculadora = Calculadora()
 
         acumTotal = calculadora.AcumTotal(
-            self.datos['Acumulado Consignaciones'],
-            self.datos['Acumulado Inversiones']
+            self.datos['Nuevo Acumulado Consignaciones'],
+            self.datos['Nuevo Acumulado Inversiones']
         )
 
         print(f"Acumulado total: {acumTotal}")
@@ -478,40 +535,55 @@ class ApliCuentas(ttk.Frame):
         Nombre Cuenta de ahorro1: {self.datos['Nombre Cuenta de ahorro 1']}
         Valor Actual Cuenta1: {self.datos['Valor Actual Cuenta1']}
         ConsignacionesXMesC1: {self.datos['Consignaciones Mes CA1']}
+        --------
         Nombre Cuenta de ahorro2: {self.datos['Nombre Cuenta de ahorro 2']}
         Valor Actual Cuenta2: {self.datos['Valor Actual Cuenta2']} 
         ConsignacionesXMesC2: {self.datos['Consignaciones Mes CA2']}
+        --------
         Nombre Cuenta de ahorro3: {self.datos['Nombre Cuenta de ahorro 3']}
         Valor Actual Cuenta3: {self.datos['Valor Actual Cuenta3']} 
         ConsignacionesXMesC3: {self.datos['Consignaciones Mes CA3']}
+        --------
         Nombre Cuenta de ahorro4: {self.datos['Nombre Cuenta de ahorro 4']}
         Valor Actual Cuenta4: {self.datos['Valor Actual Cuenta4']} 
         ConsignacionesXMesC4: {self.datos['Consignaciones Mes CA4']}
+        --------
         Suma ConsignacionesXMes: {self.datos['Suma ConsignacionesXMes']}
         ObsCuentaAhorro: {self.datos['Obs Cuentas de ahorro']}
+        Acumulado Consignaciones Anterior: {self.datos['Acumulado Consignaciones Anterior']}
+        Nuevo Acumulado Consignaciones: {self.datos['Nuevo Acumulado Consignaciones']}
         ******************************* 
         Otra Moneda: {self.datos['Otra moneda']}
         ObsOM: {self.datos['Obs OMon']}
         ************************************* 
-        AperturaInversiones: {self.datos['Apertura inversiones en Mes']}
         Inversion1: {self.datos['Inversion 1?']}
         Entidad1: {self.datos['Entidad 1?']}
         ObsInv1: {self.datos['Obs Inv1']}
+        -------
         Inversion2: {self.datos['Inversion 2?']}
         Entidad2: {self.datos['Entidad 2?']}
         ObsInv2: {self.datos['Obs Inv2']}
+        -------
         Inversion3: {self.datos['Inversion 3?']}
         Entidad3: {self.datos['Entidad 3?']}
         ObsInv3: {self.datos['Obs Inv3']}
+        -------
         Inversion4: {self.datos['Inversion 4?']}
         Entidad4: {self.datos['Entidad 4?']}
         ObsInv4: {self.datos['Obs Inv4']}
+        -------
         Inversion5: {self.datos['Inversion 5?']}
         Entidad5: {self.datos['Entidad 5?']}
         ObsInv5: {self.datos['Obs Inv5']}
+        -------
         Inversion6: {self.datos['Inversion 6?']}
         Entidad6: {self.datos['Entidad 6?']}
         ObsInv6: {self.datos['Obs Inv6']}
+        -------
+        ObsInversiones: {self.datos['Obs Inversiones']}
+        AperturaInversiones: {self.datos['Apertura inversiones en Mes']}
+        Acumulado Inversiones Anterior: {self.datos['Acumulado Inversiones Anterior']}
+        Nuevo Acumulado Inversiones: {self.datos['Nuevo Acumulado Inversiones']}
         **************************************
         Compras: {self.datos['Compras?']}
         ObsCompra: {self.datos['Obs Compras']}
@@ -521,23 +593,25 @@ class ApliCuentas(ttk.Frame):
         Prestamo1: {self.datos['Prestamo1']}
         NamePres1: {self.datos['nameP1']}
         ObsPres1: {self.datos['Obs Pres1']}
+        -------
         Prestamo2: {self.datos['Prestamo2']}
         NamePres2: {self.datos['nameP2']}
         ObsPres2: {self.datos['Obs Pres2']}
+        -------
         Prestamo3: {self.datos['Prestamo3']}
         NamePres3: {self.datos['nameP3']}
         ObsPres3: {self.datos['Obs Pres3']}
+        -------
         Prestamo4: {self.datos['Prestamo4']}
         NamePres4: {self.datos['nameP4']}
         ObsPres4: {self.datos['Obs Pres4']}
+        -------
         Total Prestamos: {self.datos['Total Prestamos']} 
         ***************************************
         Activos: {activos}
         Pasivos: {self.datos['Total Prestamos']}
         Patrimonio: {patrimonio}
         ******************************* 
-        AcumConsignaciones: {self.datos['Acumulado Consignaciones']}
-        AcumInversiones: {self.datos['Acumulado Inversiones']}
         Observaciones: {self.datos['Observaciones Adicionales']}
         Acum Consigna+Inversiones: {self.datos['Acum Consigna+Inversiones']}
         """
@@ -552,9 +626,7 @@ class ApliCuentas(ttk.Frame):
             except Exception:
                 pass
 
-    # ---------------------------
     # VENTANA CARGA (VistaLoad)
-    # ---------------------------
     def boton_load_save(self):
         print("Load Save clicked!")
 
@@ -583,65 +655,85 @@ class ApliCuentas(ttk.Frame):
             "Mes": 1,
             "Efectivo actual": 3, 
             "Obs Efect": 4,
+
             "Nombre Cuenta de ahorro 1": 6,
             "Valor Actual Cuenta1": 7,
             "Consignaciones Mes CA1": 8, 
-            "Nombre Cuenta de ahorro 2": 9,
-            "Valor Actual Cuenta2": 10,
-            "Consignaciones Mes CA2": 11,
-            "Nombre Cuenta de ahorro 3": 12,
-            "Valor Actual Cuenta3": 13, 
-            "Consignaciones Mes CA3": 14,
-            "Nombre Cuenta de ahorro 4": 15,
-            "Valor Actual Cuenta4": 16, 
-            "Consignaciones Mes CA4": 17,
-            "Suma ConsignacionesXMes": 18,
-            "Obs Cuentas de ahorro": 19,
-            "Otra moneda": 21,
-            "Obs OMon": 22,
-            "Apertura inversiones en Mes": 24,
-            "Inversion 1?": 25,
-            "Entidad 1?": 26,
-            "Obs Inv1": 27,
-            "Inversion 2?": 28,
-            "Entidad 2?": 29,
-            "Obs Inv2": 30,
-            "Inversion 3?": 31,
-            "Entidad 3?": 32,
-            "Obs Inv3": 33,
-            "Inversion 4?": 34,
-            "Entidad 4?": 35,
-            "Obs Inv4": 36,
-            "Inversion 5?": 37,
-            "Entidad 5?": 38,
-            "Obs Inv5": 39,
-            "Inversion 6?": 40,
-            "Entidad 6?": 41,
-            "Obs Inv6": 42,
 
-            "Compras?": 44,
-            "Obs Compras": 45,
-            "Gastos?": 46,
-            "Obs Gastos": 47,
+            "Nombre Cuenta de ahorro 2": 10,
+            "Valor Actual Cuenta2": 11,
+            "Consignaciones Mes CA2": 12,
+            
+            "Nombre Cuenta de ahorro 3": 14,
+            "Valor Actual Cuenta3": 15, 
+            "Consignaciones Mes CA3": 16,
+            
+            "Nombre Cuenta de ahorro 4": 18,
+            "Valor Actual Cuenta4": 19, 
+            "Consignaciones Mes CA4": 20,
+            
+            "Suma ConsignacionesXMes": 22,
+            "Obs Cuentas de ahorro": 23,
+            "Acumulado Consignaciones Anterior": 24,
+            "Nuevo Acumulado Consignaciones": 25, 
 
-            "Prestamo1": 49,
-            "nameP1": 50,
-            "Obs Pres1": 51,
-            "Prestamo2": 52,
-            "nameP2": 53,
-            "Obs Pres2": 54,
-            "Prestamo3": 55,
-            "nameP3": 56,
-            "Obs Pres3": 57,
-            "Prestamo4": 58,
-            "nameP4": 59,
-            "Obs Pres4": 60,
-            "Total Prestamos": 61,
+            "Otra moneda": 27,
+            "Obs OMon": 28,
 
-            "Acumulado Consignaciones": 67, 
-            "Acumulado Inversiones": 68, 
-            "Observaciones Adicionales": 69,
-            "Acum Consigna+Inversiones": 70
+            "Inversion 1?": 30,
+            "Entidad 1?": 31,
+            "Obs Inv1": 32,
+
+            "Inversion 2?": 34,
+            "Entidad 2?": 35,
+            "Obs Inv2": 36,
+
+            "Inversion 3?": 38,
+            "Entidad 3?": 39,
+            "Obs Inv3": 40,
+
+            "Inversion 4?": 42,
+            "Entidad 4?": 43,
+            "Obs Inv4": 44,
+
+            "Inversion 5?": 46,
+            "Entidad 5?": 47,
+            "Obs Inv5": 48,
+
+            "Inversion 6?": 50,
+            "Entidad 6?": 51,
+            "Obs Inv6": 52,
+
+            "Obs Inversiones": 54,
+            "Apertura inversiones en Mes": 55,
+            "Acumulado Inversiones Anterior": 56,
+            "Nuevo Acumulado Inversiones": 57, 
+
+            "Compras?": 59,
+            "Obs Compras": 60,
+            "Gastos?": 61,
+            "Obs Gastos": 62,
+
+            "Prestamo1": 64,
+            "nameP1": 65,
+            "Obs Pres1": 66,
+
+            "Prestamo2": 68,
+            "nameP2": 69,
+            "Obs Pres2": 70,
+
+            "Prestamo3": 72,
+            "nameP3": 73,
+            "Obs Pres3": 74,
+
+            "Prestamo4": 76,
+            "nameP4": 77,
+            "Obs Pres4": 78,
+
+            "Total Prestamos": 80,
+            
+            "Observaciones Adicionales": 86,
+            "Acum Consigna+Inversiones": 87
         }
 
         for label, posicion in mapa_actualizacion.items():
@@ -665,9 +757,7 @@ class ApliCuentas(ttk.Frame):
         else:
             print(f"Error: No se encontró el Entry con el label '{label}'.")
 
-    # ---------------------------
     # EJECUCIÓN
-    # ---------------------------
     def run(self):
         # Si esta clase creó su propio root, ejecuta mainloop; si no, asume que el llamador lo hará
         if self._owns_root:
@@ -675,7 +765,6 @@ class ApliCuentas(ttk.Frame):
                 self.top.mainloop()
             except Exception:
                 pass
-
 
 # Si ejecutas este archivo directamente, creamos la app (esto preserva tu estilo)
 if __name__ == "__main__":

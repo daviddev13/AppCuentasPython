@@ -1,15 +1,65 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 
 from comunes.VistaConfirm import VistaConfirm  # Importar la clase desde el módulo
 from .Calculadora import Calculadora
 from comunes.VistaLoad import VistaLoad
 
-class ApliRenta(tk.Frame):
+class ApliRenta(ttk.Frame):
 #class VistaPrincipal:
-    def __init__(self, master):
-        super().__init__(master)  # Inicializa el Frame con master
-        tk.Label(self, text="Hola desde App2").pack(pady=20)
+    def __init__(self, master=None):
+         # Determinar la ventana superior (self.top) y si esta clase creó el root
+        self._owns_root = False
+        if master is None:
+            # Ejecutar como app independiente
+            self.top = tk.Tk()
+            self._owns_root = True
+            parent_for_frame = self.top
+        else:
+            # Si el master es una ventana (Tk o Toplevel) -> usamos esa ventana
+            if isinstance(master, (tk.Tk, tk.Toplevel)):
+                self.top = master
+                parent_for_frame = self.top
+            else:
+                # Si el master es un Frame (embedding) -> creamos un Toplevel para que abra en ventana separada
+                self.top = tk.Toplevel()
+                parent_for_frame = self.top
+
+        # Inicializar el Frame dentro de la ventana real
+        super().__init__(parent_for_frame)
+        # Mostrar el frame en la ventana que corresponde
+        self.pack(fill="both", expand=True)
+
+        # Configuración básica de la ventana
+        try:
+            # Título/geometry solo si tenemos una ventana real
+            if isinstance(self.top, (tk.Tk, tk.Toplevel)):
+                self.top.title("Rentabilidades")
+                # Si creamos el root, damos tamaño por defecto; si el usuario pasó un Toplevel/Tk se respeta o se reajusta
+                if self._owns_root:
+                    self.top.geometry("1600x1200")
+                else:
+                    # si el top proviene de caller, no forzamos un tamaño grande, solo un mínimo
+                    try:
+                        self.top.minsize(2000, 900)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        # Crear barra de menú SOLO si esta clase creó su propio root (para no pisar menús en apps integradas)
+        # Crear menú si estamos en una ventana real (Tk o Toplevel)
+        if isinstance(self.top, (tk.Tk, tk.Toplevel)):
+            try:
+                menubar = tk.Menu(self.top)
+                self.top.config(menu=menubar)
+                app_menu = tk.Menu(menubar, tearoff=0)
+                menubar.add_cascade(label="Archivo", menu=app_menu)
+                app_menu.add_command(label="Cargar Archivo", command=self.boton_load_save)
+            except Exception:
+                pass
+
         
         self.datos = {
             "Mes": "",
@@ -73,39 +123,102 @@ class ApliRenta(tk.Frame):
             "ValorInversor4": ""
         }
 
-        self.root = tk.Tk()
+        # ---------- SCROLLABLE AREA (canvas + interior) ----------
+        contenedor = tk.Frame(self)
+        contenedor.pack(fill="both", expand=True)
 
-        # Titulo de la app
-        self.root.title("Rentabilidades")
+        # Canvas que contendrá el interior desplazable
+        self.canvas = tk.Canvas(contenedor)
+        self.canvas.pack(side="left", fill="both", expand=True)
 
-        # Barra de navegación
-        menubar = tk.Menu(self.root)
-        self.root.config(menu=menubar)
-        # Submenú "Archivo"
-        app_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Archivo", menu=app_menu)
-        app_menu.add_command(label="Cargar Archivo", command=self.boton_load_save)
+        # Scrollbar vertical
+        scrollbar = ttk.Scrollbar(contenedor, orient="vertical", command=self.canvas.yview)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Crear y configurar estilo para scrollbar más grueso
+        style = ttk.Style()
+        
+        # Configurar estilo personalizado
+        style.configure("Custom.Vertical.TScrollbar",
+                arrowsize=20,
+                width=35,
+                background="#6C8EBF",  # Color del deslizador
+                troughcolor="#F5F5F5",  # Color del canal
+                borderwidth=0,
+                relief="flat")
+        
+        # Aplicar el estilo
+        scrollbar.configure(style="Custom.Vertical.TScrollbar")
 
-        # Diccionario para guardar los Entries antes de crearlos
-        self.entries = {} 
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Frame interior donde pondrás los widgets (este es el que se desplaza)
+        self.interior = tk.Frame(self.canvas)
+        self.interior_id = self.canvas.create_window((0, 0), window=self.interior, anchor="nw")
+
+        # Cuando cambie el tamaño del interior actualizamos la scrollregion
+        self.interior.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        # Ajustar el ancho del interior cuando cambie el canvas (para que grid se comporte)
+        def _on_canvas_configure(event):
+            canvas_width = event.width
+            try:
+                self.canvas.itemconfigure(self.interior_id, width=canvas_width)
+            except Exception:
+                pass
+        self.canvas.bind("<Configure>", _on_canvas_configure)
+
+        # Soporte de rueda del ratón para el scroll (Windows/macOS/Linux)
+        self._bind_mousewheel()
+
+        # Variables y creación de widgets
+        self.entries = {}
         self.create_widgets()
 
         # instancia de load con callback
-        self.vista_load = VistaLoad(master=self.root, callback=self.recibir_lineas)
+        try:
+            vista_load_master = self.top if isinstance(self.top, (tk.Tk, tk.Toplevel)) else self.winfo_toplevel()
+            self.vista_load = VistaLoad(master=vista_load_master, callback=self.recibir_lineas)
+        except Exception:
+            self.vista_load = None
 
         # Inicializa variable vacia
         self.url_user = ""
         self.lineas_recibidas = [] # Variable para almacenar las líneas
-        
+    
+    # Manejo de la rueda del ratón (soporte multiplataforma)
+    def _bind_mousewheel(self):
+        # Vincular cuando el cursor entra al canvas para que la rueda funcione
+        self.canvas.bind("<Enter>", lambda e: self.canvas.focus_set())
+        # Windows / macOS
+        self.canvas.bind("<MouseWheel>", self._on_mousewheel_windows_mac)
+        # Linux (scroll up / down)
+        self.canvas.bind("<Button-4>", self._on_mousewheel_linux)
+        self.canvas.bind("<Button-5>", self._on_mousewheel_linux)
+
+    def _on_mousewheel_windows_mac(self, event):
+        try:
+            delta = int(-1 * (event.delta / 120))
+        except Exception:
+            delta = 0
+        self.canvas.yview_scroll(delta, "units")
+
+    def _on_mousewheel_linux(self, event):
+        if event.num == 4:
+            self.canvas.yview_scroll(-1, "units")
+        elif event.num == 5:
+            self.canvas.yview_scroll(1, "units")
+    
+    # CREACIÓN DEL FORMULARIO
     def create_widgets(self):
-        row = 1
+        row = 0  # Comenzar en 0, no en 1
 
         # Paquete de Mes
         self.create_entry(row, "Mes")
         row += 1
 
         # Paquete de Inversiones
-        tk.Label(self.root, text="INVERSIONES").grid(row=row, column=0, columnspan=3)
+        tk.Label(self.interior, text="INVERSIONES").grid(row=row, column=0, columnspan=3)
         row += 1
         self.create_entries_triple(row, "Inversion1", "LugarInverison1","GananciaInv1", "Proximo1")
         row += 1
@@ -149,7 +262,7 @@ class ApliRenta(tk.Frame):
         row += 1
 
         # Paquete de INVERSORES
-        tk.Label(self.root, text="INVERSORES").grid(row=row, column=0, columnspan=3)
+        tk.Label(self.interior, text="INVERSORES").grid(row=row, column=0, columnspan=3)
         row += 1
         self.create_entries_pair(row, "Inversor1", "ValorInversor1")
         row += 1
@@ -160,58 +273,66 @@ class ApliRenta(tk.Frame):
         self.create_entries_pair(row, "Inversor4", "ValorInversor4")
         row += 1
 
-        confirm_button = tk.Button(self.root, text="Confirmar Datos", command=self.evento_boton_confirmar_datos)
+        confirm_button = tk.Button(self.interior, text="Confirmar Datos", command=self.evento_boton_confirmar_datos)
         confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
         row += 1
     
     def create_entries_uno(self, row, campo1, bg_color="#ffffff"):
-        tk.Label(self.root, text=campo1, bg=bg_color).grid(row=row, column=0, sticky="w")
-        entry1 = tk.Entry(self.root, bg=bg_color)
+        tk.Label(self.interior, text=campo1, bg=bg_color).grid(row=row, column=0, sticky="w")
+        entry1 = tk.Entry(self.interior, bg=bg_color)
         entry1.insert(0, "0")
         entry1.grid(row=row, column=1, columnspan=6, sticky="we")
         self.entries[campo1] = entry1
 
     def create_entries_pair(self, row, label1, label2, bg_color="#ffffff"):
-        tk.Label(self.root, text=label1, bg=bg_color).grid(row=row, column=0, sticky="w")
-        entry1 = tk.Entry(self.root, bg=bg_color)
+        tk.Label(self.interior, text=label1, bg=bg_color).grid(row=row, column=0, sticky="w")
+        entry1 = tk.Entry(self.interior, bg=bg_color)
         entry1.insert(0, "0")
         entry1.grid(row=row, column=1, sticky="we")
         self.entries[label1] = entry1
 
-        tk.Label(self.root, text=label2, bg=bg_color).grid(row=row, column=2, sticky="w")
-        entry2 = tk.Entry(self.root, bg=bg_color)
+        tk.Label(self.interior, text=label2, bg=bg_color).grid(row=row, column=2, sticky="w")
+        entry2 = tk.Entry(self.interior, bg=bg_color)
         entry2.insert(0, "0")
         entry2.grid(row=row, column=3, sticky="we")
         self.entries[label2] = entry2
-    
+
     def create_entries_triple(self, row, campo1, campo2, campo3, campo4):
         # Labels y entradas
-        tk.Label(self.root, text=campo1).grid(row=row, column=0, sticky="w")
-        entry1 = tk.Entry(self.root)
+        tk.Label(self.interior, text=campo1).grid(row=row, column=0, sticky="w")
+        entry1 = tk.Entry(self.interior)
         entry1.insert(0, "0")
         entry1.grid(row=row, column=1, sticky="we")
         self.entries[campo1] = entry1
 
-        tk.Label(self.root, text=campo2).grid(row=row, column=2, sticky="w")
-        entry2 = tk.Entry(self.root)
+        tk.Label(self.interior, text=campo2).grid(row=row, column=2, sticky="w")
+        entry2 = tk.Entry(self.interior)
         entry2.insert(0, "0")
         entry2.grid(row=row, column=3, sticky="we")
         self.entries[campo2] = entry2
 
-        tk.Label(self.root, text=campo3).grid(row=row, column=4, sticky="w")
-        entry3 = tk.Entry(self.root)
+        tk.Label(self.interior, text=campo3).grid(row=row, column=4, sticky="w")
+        entry3 = tk.Entry(self.interior)
         entry3.insert(0, "0")
         entry3.grid(row=row, column=5, sticky="we")
         self.entries[campo3] = entry3
 
-        tk.Label(self.root, text=campo4).grid(row=row, column=6, sticky="w")
-        entry4 = tk.Entry(self.root, state="readonly")
+        tk.Label(self.interior, text=campo4).grid(row=row, column=6, sticky="w")
+        entry4 = tk.Entry(self.interior, state="readonly")
         entry4.grid(row=row, column=7, sticky="we")
         self.entries[campo4] = entry4
 
         # Botón para sumar
-        btn = tk.Button(self.root, text="Sumar", command=lambda: self.sumar_campos(campo1, campo3, campo4))
+        btn = tk.Button(self.interior, text="Sumar", command=lambda: self.sumar_campos(campo1, campo3, campo4))
         btn.grid(row=row, column=8)
+
+    def create_entry(self, row, label):
+        """Crea un Entry y lo guarda en el diccionario"""
+        tk.Label(self.interior, text=label).grid(row=row, column=0, sticky="w")
+        entry = tk.Entry(self.interior)
+        entry.insert(0, "0")  # Establecer el valor inicial 0
+        entry.grid(row=row, column=1, columnspan=3, sticky="we")
+        self.entries[label] = entry  # Guardar el Entry en un diccionario
 
     def sumar_campos(self, campo1, campo3, campo_total):
         try:
@@ -230,15 +351,6 @@ class ApliRenta(tk.Frame):
         entry_total.delete(0, tk.END)
         entry_total.insert(0, f"{total:.2f}")
         entry_total.config(state="readonly")
-
-    
-    def create_entry(self, row, label):
-        """Crea un Entry y lo guarda en el diccionario"""
-        tk.Label(self.root, text=label).grid(row=row, column=0, sticky="w")
-        entry = tk.Entry(self.root)
-        entry.insert(0, "0")  # Establecer el valor inicial 0
-        entry.grid(row=row, column=1, columnspan=3, sticky="we")
-        self.entries[label] = entry  # Guardar el Entry en un diccionario
 
     def get_datos_window(self):
         for key in self.datos.keys():
@@ -359,34 +471,53 @@ class ApliRenta(tk.Frame):
         Inversion {self.datos['Inversor1']}: {self.datos['ValorInversor1']}
         Porcentaje {self.datos['Inversor1']}: {totales1[2]}
         Ganancia {self.datos['Inversor1']}: {totales1[3]}
+        Valor Próximo {self.datos['Inversor1']}: {totales1[4]}
+        Restante después {self.datos['Inversor1']}: {totales1[5]}
+        
         {self.datos['Inversor2']}
         Inversion {self.datos['Inversor2']}: {self.datos['ValorInversor2']}
-        Porcentaje {self.datos['Inversor2']}: {totales1[4]}
-        Ganancia {self.datos['Inversor2']}: {totales1[5]}
+        Porcentaje {self.datos['Inversor2']}: {totales1[6]}
+        Ganancia {self.datos['Inversor2']}: {totales1[7]}
+        Valor Próximo {self.datos['Inversor2']}: {totales1[8]}
+        Restante después {self.datos['Inversor2']}: {totales1[9]}
+        
         {self.datos['Inversor3']}
         Inversion {self.datos['Inversor3']}: {self.datos['ValorInversor3']}
-        Porcentaje {self.datos['Inversor3']}: {totales1[6]}
-        Ganancia {self.datos['Inversor3']}: {totales1[7]}
+        Porcentaje {self.datos['Inversor3']}: {totales1[10]}
+        Ganancia {self.datos['Inversor3']}: {totales1[11]}
+        Valor Próximo {self.datos['Inversor3']}: {totales1[12]}
+        Restante después {self.datos['Inversor3']}: {totales1[13]}
+        
         {self.datos['Inversor4']}
         Inversion {self.datos['Inversor4']}: {self.datos['ValorInversor4']}
-        Porcentaje {self.datos['Inversor4']}: {totales1[8]}
-        Ganancia {self.datos['Inversor4']}: {totales1[9]}
+        Porcentaje {self.datos['Inversor4']}: {totales1[14]}
+        Ganancia {self.datos['Inversor4']}: {totales1[15]}
+        Valor Próximo {self.datos['Inversor4']}: {totales1[16]}
+        Restante después {self.datos['Inversor4']}: {totales1[17]}
         """
         # clic “Confirmar” crea nueva ventana totalmente nueva sin instancia.
-        ventana = VistaConfirm(self.root)
+        ventana = VistaConfirm(self.top)
         ventana.set_label2_text(Datos)
         ventana.mostrar()
 
     def boton_load_save(self):
         print("Load Save clicked!")
-        # Hace visible ventana de carga
-        # antes de mostrar ventana, verifica si sigue existiendo:
+
+        # Asegurar que la ventana exista; si fue destruida la volvemos a crear
         try:
-            if not self.vista_load or not self.vista_load.winfo_exists():
-                self.vista_load = VistaLoad(self)
+            if not hasattr(self, "vista_load") or self.vista_load is None or not self.vista_load.winfo_exists():
+                master_for_load = self.top if isinstance(self.top, (tk.Tk, tk.Toplevel)) else self.winfo_toplevel()
+                self.vista_load = VistaLoad(master=master_for_load, callback=self.recibir_lineas)
+        except Exception as e:
+            print("Error creando VistaLoad, lo intento de nuevo:", e)
+            master_for_load = self.top if isinstance(self.top, (tk.Tk, tk.Toplevel)) else self.winfo_toplevel()
+            self.vista_load = VistaLoad(master=master_for_load, callback=self.recibir_lineas)
+
+        # Mostrar la ventana
+        try:
             self.vista_load.mostrar()
         except Exception as e:
-            print("Error al cargar la vista de archivo:", e)
+            print("Error mostrando VistaLoad:", e)
     
     def recibir_lineas(self, lineas):
         print("Líneas recibidas desde VistaLoad:")
@@ -458,12 +589,12 @@ class ApliRenta(tk.Frame):
 
             "Inversor1": 66,
             "ValorInversor1": 67,
-            "Inversor2": 70,
-            "ValorInversor2": 71,
-            "Inversor3": 74,
-            "ValorInversor3": 75,
-            "Inversor4": 78,
-            "ValorInversor4": 79
+            "Inversor2": 73,
+            "ValorInversor2": 74,
+            "Inversor3": 80,
+            "ValorInversor3": 81,
+            "Inversor4": 87,
+            "ValorInversor4": 88
         }
         # Recorres el diccionario y actualizas cada entrada
         for label, posicion in mapa_actualizacion.items():
@@ -498,9 +629,17 @@ class ApliRenta(tk.Frame):
         else:
             print(f"Error: No se encontró el Entry con el label '{label}'.")
    
+       # EJECUCIÓN
+    
     def run(self):
-        self.root.mainloop()
+        # Si esta clase creó su propio root, ejecuta mainloop; si no, asume que el llamador lo hará
+        if self._owns_root:
+            try:
+                self.top.mainloop()
+            except Exception:
+                pass
 
+# Si ejecutas este archivo directamente, creamos la app (esto preserva tu estilo)
 if __name__ == "__main__":
-    app = VistaPrincipal()
+    app = ApliRenta(None)
     app.run()

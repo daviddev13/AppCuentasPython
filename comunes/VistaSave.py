@@ -8,7 +8,7 @@ class VistaSave(tk.Toplevel):
         super().__init__(master)  # Usar el constructor de Toplevel    
         print("Clase vista save creada")
         self.title("Guardar")
-        self.geometry("400x200") 
+        self.geometry("1200x200") 
         
         # Ocultar la ventana secundaria hasta que sea necesario
         self.withdraw() 

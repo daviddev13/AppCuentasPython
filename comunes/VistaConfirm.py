@@ -9,7 +9,7 @@ class VistaConfirm(tk.Toplevel):
         super().__init__(master) 
         print("Clase VistaConfirm creada")
         self.title("Confirmar Datos")
-        self.geometry("400x900")
+        self.geometry("800x900")
         
         # Ocultar la ventana secundaria hasta que sea necesario
         self.withdraw()
@@ -34,7 +34,7 @@ class VistaConfirm(tk.Toplevel):
         self.interior.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         # -------------------- TUS WIDGETS AQUÍ --------------------
-        self.label2 = tk.Label(self.interior, text="", wraplength=350, font=("Arial", 12))
+        self.label2 = tk.Label(self.interior, text="", wraplength=800, font=("Arial", 12))
         self.label2.pack(pady=20)
         
         self.button1 = tk.Button(self.interior, text="Guardar Datos", command=self.on_button_click)

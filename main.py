@@ -7,7 +7,7 @@ class AppPrincipal(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Aplicación XXXX")
-        self.geometry("500x200")
+        self.geometry("1000x400")
 
         # Contenedor para los botones y mensajes
         self.barra_botones = ttk.Frame(self)
@@ -77,6 +77,7 @@ class AppPrincipal(tk.Tk):
 
     # Crear app dentro de esta ventana
        ApliRenta(self.ventana_app2)
+       
 
     def _limpiar_actual(self):
         if self.app_actual:

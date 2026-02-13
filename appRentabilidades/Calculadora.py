@@ -10,7 +10,6 @@ class Calculadora:
                     texValorPersona1, texValorPersona2, texValorPersona3
                     , texValorPersona4):
         
-        #print(textcash)
         # Obtener textos de cada campo
         numInv1 = int(texInversion1);
         numInv2 = int(texInversion2);
@@ -37,30 +36,54 @@ class Calculadora:
         numValorPer3 = int(texValorPersona3);
         numValorPer4 = int(texValorPersona4);
 
-        #Calculo Total Invertido
+        # Calculo Total Invertido
         totalAc = (numInv1 + numInv2 + numInv3 + numInv4 + numInv5 + numInv6 + numInv7 + numInv8 + numInv9 + numInv10);
         # Calculo Total Ganancias
         totalAcGan = (numGanInv1 + numGanInv2 + numGanInv3 + numGanInv4 + numGanInv5 + numGanInv6 + numGanInv7 + numGanInv8 + numGanInv9 + numGanInv10);
        
-        # Calculo Porcentaje
+        # === PERSONA 1 ===
+        # Calculo Porcentaje Persona 1
         PorcenPersona1 = ((numValorPer1*100)/totalAc);
-        # Calculo Total Ganncia
+        # Calculo Total Ganancia Persona 1
         GanPersona1 = ((PorcenPersona1*totalAcGan)/100);
+        # Calculo Valor Próximo Persona 1
+        ValorProximo1 = numValorPer1 + GanPersona1;
+        # Calculo Restante después de Persona 1
+        RestanteDespues1 = totalAc - numValorPer1;
 
-         # Calculo Porcentaje
+        # === PERSONA 2 ===
+        # Calculo Porcentaje Persona 2
         PorcenPersona2 = ((numValorPer2*100)/totalAc);
-        # Calculo Total Ganncia
+        # Calculo Total Ganancia Persona 2
         GanPersona2 = ((PorcenPersona2*totalAcGan)/100);
+        # Calculo Valor Próximo Persona 2
+        ValorProximo2 = numValorPer2 + GanPersona2;
+        # Calculo Restante después de Persona 2
+        RestanteDespues2 = RestanteDespues1 - numValorPer2;
 
-         # Calculo Porcentaje
+        # === PERSONA 3 ===
+        # Calculo Porcentaje Persona 3
         PorcenPersona3 = ((numValorPer3*100)/totalAc);
-        # Calculo Total Ganncia
+        # Calculo Total Ganancia Persona 3
         GanPersona3 = ((PorcenPersona3*totalAcGan)/100);
+        # Calculo Valor Próximo Persona 3
+        ValorProximo3 = numValorPer3 + GanPersona3;
+        # Calculo Restante después de Persona 3
+        RestanteDespues3 = RestanteDespues2 - numValorPer3;
 
-        # Calculo Porcentaje
+        # === PERSONA 4 ===
+        # Calculo Porcentaje Persona 4
         PorcenPersona4 = ((numValorPer4*100)/totalAc);
-        # Calculo Total Ganncia
+        # Calculo Total Ganancia Persona 4
         GanPersona4 = ((PorcenPersona4*totalAcGan)/100);
+        # Calculo Valor Próximo Persona 4
+        ValorProximo4 = numValorPer4 + GanPersona4;
+        # Calculo Restante después de Persona 4
+        RestanteDespues4 = RestanteDespues3 - numValorPer4;
 
         print(totalAcGan);
-        return totalAc, totalAcGan, PorcenPersona1, GanPersona1, PorcenPersona2, GanPersona2, PorcenPersona3, GanPersona3, PorcenPersona4, GanPersona4
+        return (totalAc, totalAcGan, 
+                PorcenPersona1, GanPersona1, ValorProximo1, RestanteDespues1,
+                PorcenPersona2, GanPersona2, ValorProximo2, RestanteDespues2,
+                PorcenPersona3, GanPersona3, ValorProximo3, RestanteDespues3,
+                PorcenPersona4, GanPersona4, ValorProximo4, RestanteDespues4)

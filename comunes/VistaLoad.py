@@ -8,7 +8,7 @@ class VistaLoad(tk.Toplevel):
         super().__init__(master)  # Usar el constructor de Toplevel    
         print("Clase vista load creada")
         self.title("Cargar Archivo .txt")
-        self.geometry("400x200") 
+        self.geometry("1200x200") 
         
         # función de retorno
         self.callback = callback  
@@ -32,7 +32,9 @@ class VistaLoad(tk.Toplevel):
 
     def mostrar(self):
         """Hace visible la ventana"""
-        self.deiconify()  
+        self.deiconify()
+        self.lift()  # Trae la ventana al frente
+        self.focus_force()  # Le da el foco
     
     def ocultar(self):
         """Oculta la ventana sin cerrarla"""
@@ -41,17 +43,22 @@ class VistaLoad(tk.Toplevel):
     def buscar_url_archivo(self):
         print("Buscando archivo...")
         ruta_archivo = filedialog.askopenfilename(
-        title="Seleccionar archivo .txt",
-        filetypes=(("Archivos de texto", "*.txt"), ("Todos los archivos", "*.*"))
+            parent=self,  # IMPORTANTE: especifica esta ventana como padre
+            title="Seleccionar archivo .txt",
+            filetypes=(("Archivos de texto", "*.txt"), ("Todos los archivos", "*.*"))
         )
         if ruta_archivo:
-            self.entry.delete(0, tk.END)         # Limpia el campo
-            self.entry.insert(0, ruta_archivo)   # Inserta la ruta del archivo
-            self.urlArchivo = ruta_archivo       # Guarda la URL si la necesitas
+            self.entry.delete(0, tk.END)
+            self.entry.insert(0, ruta_archivo)
+            self.urlArchivo = ruta_archivo
             print("Archivo seleccionado:", ruta_archivo)
+            
+        # Traer la ventana al frente después de cerrar el diálogo
+        self.lift()
+        self.focus_force()
 
     def get_archivo(self):   
-        url = self.get_entry_text()  # Corrección aquí
+        url = self.get_entry_text()
         print("URL:", url)
         lineas = []
         try:
@@ -59,11 +66,10 @@ class VistaLoad(tk.Toplevel):
                 for linea in reader:
                     lineas.append(linea.strip())
             if self.callback:
-                self.callback(lineas)  # Llama a la función del principal
-                self.withdraw()  # Oculta la ventana luego de cargar
+                self.callback(lineas)
+                self.withdraw()
         except IOError:
             messagebox.showerror("Error", "Error al obtener archivo")
-        # print("Agarrando txt desde vistaLoad:", lineas)
         return lineas 
 
     def get_entry_text(self):
@@ -71,9 +77,9 @@ class VistaLoad(tk.Toplevel):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.withdraw()  # Oculta la ventana raíz principal (opcional)
+    root.withdraw()
     
-    app = VistaLoad()  # Crear instancia de VistaSave
-    app.mostrar()  # Mostrar la ventana secundaria (opcional para pruebas)
+    app = VistaLoad()
+    app.mostrar()
     
     root.mainloop()
