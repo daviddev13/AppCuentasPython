@@ -471,29 +471,29 @@ class ApliRenta(ttk.Frame):
         Inversion {self.datos['Inversor1']}: {self.datos['ValorInversor1']}
         Porcentaje {self.datos['Inversor1']}: {totales1[2]}
         Ganancia {self.datos['Inversor1']}: {totales1[3]}
-        Valor Próximo {self.datos['Inversor1']}: {totales1[4]}
-        Restante después {self.datos['Inversor1']}: {totales1[5]}
+        Valor Proximo {self.datos['Inversor1']}: {totales1[4]}
+        Restante despues {self.datos['Inversor1']}: {totales1[5]}
         
         {self.datos['Inversor2']}
         Inversion {self.datos['Inversor2']}: {self.datos['ValorInversor2']}
         Porcentaje {self.datos['Inversor2']}: {totales1[6]}
         Ganancia {self.datos['Inversor2']}: {totales1[7]}
-        Valor Próximo {self.datos['Inversor2']}: {totales1[8]}
-        Restante después {self.datos['Inversor2']}: {totales1[9]}
+        Valor Proximo {self.datos['Inversor2']}: {totales1[8]}
+        Restante despues {self.datos['Inversor2']}: {totales1[9]}
         
         {self.datos['Inversor3']}
         Inversion {self.datos['Inversor3']}: {self.datos['ValorInversor3']}
         Porcentaje {self.datos['Inversor3']}: {totales1[10]}
         Ganancia {self.datos['Inversor3']}: {totales1[11]}
-        Valor Próximo {self.datos['Inversor3']}: {totales1[12]}
-        Restante después {self.datos['Inversor3']}: {totales1[13]}
+        Valor Proximo {self.datos['Inversor3']}: {totales1[12]}
+        Restante despues {self.datos['Inversor3']}: {totales1[13]}
         
         {self.datos['Inversor4']}
         Inversion {self.datos['Inversor4']}: {self.datos['ValorInversor4']}
         Porcentaje {self.datos['Inversor4']}: {totales1[14]}
         Ganancia {self.datos['Inversor4']}: {totales1[15]}
-        Valor Próximo {self.datos['Inversor4']}: {totales1[16]}
-        Restante después {self.datos['Inversor4']}: {totales1[17]}
+        Valor Proximo {self.datos['Inversor4']}: {totales1[16]}
+        Restante despues {self.datos['Inversor4']}: {totales1[17]}
         """
         # clic “Confirmar” crea nueva ventana totalmente nueva sin instancia.
         ventana = VistaConfirm(self.top)
